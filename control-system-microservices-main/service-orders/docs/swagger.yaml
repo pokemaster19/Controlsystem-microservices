@@ -1,0 +1,225 @@
+basePath: /api/v1
+definitions:
+  services.CreateOrderInput:
+    properties:
+      cost:
+        minimum: 0
+        type: integer
+      order_items:
+        items:
+          $ref: '#/definitions/services.OrderItemInput'
+        minItems: 1
+        type: array
+      status:
+        enum:
+        - created
+        - in_progress
+        - completed
+        - cancelled
+        type: string
+      user_id:
+        type: integer
+    required:
+    - cost
+    - order_items
+    - status
+    - user_id
+    type: object
+  services.OrderItemInput:
+    properties:
+      name:
+        type: string
+      quantity:
+        minimum: 1
+        type: integer
+    required:
+    - name
+    - quantity
+    type: object
+  services.OrderItemResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      quantity:
+        type: integer
+    type: object
+  services.OrderResponse:
+    properties:
+      cost:
+        type: integer
+      id:
+        type: integer
+      order_items:
+        items:
+          $ref: '#/definitions/services.OrderItemResponse'
+        type: array
+      status:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  services.UpdateOrderInput:
+    properties:
+      status:
+        enum:
+        - created
+        - in_progress
+        - completed
+        - cancelled
+        type: string
+    required:
+    - status
+    type: object
+host: localhost:8081
+info:
+  contact: {}
+  description: API для управления заказами в системе
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Orders Service API
+  version: "1.0"
+paths:
+  /orders:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new order with provided data
+      parameters:
+      - description: Order creation data
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/services.CreateOrderInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created order
+          schema:
+            $ref: '#/definitions/services.OrderResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new order
+      tags:
+      - Orders
+  /orders/{orderId}:
+    delete:
+      description: Deletes an order by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: orderId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Empty response
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete an order
+      tags:
+      - Orders
+    get:
+      consumes:
+      - application/json
+      description: Gets order by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: orderId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order data
+          schema:
+            $ref: '#/definitions/services.OrderResponse'
+      security:
+      - BearerAuth: []
+      summary: Gets order by ID
+      tags:
+      - Orders
+    patch:
+      consumes:
+      - application/json
+      description: Updates an existing order by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: orderId
+        required: true
+        type: integer
+      - description: Order update data
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/services.UpdateOrderInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated order
+          schema:
+            $ref: '#/definitions/services.OrderResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an order
+      tags:
+      - Orders
+  /v1/orders:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a paginated list of orders with optional userId and status
+        filters
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of records per page
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by user ID
+        in: query
+        name: userId
+        type: integer
+      - description: Filter by order status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of orders with pagination
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get list of orders
+      tags:
+      - Orders
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
